@@ -333,6 +333,10 @@ const vo=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;
   if(e.isIntersecting){if(!v.dataset.loaded){v.src=v.dataset.mp4||v.dataset.webm;v.dataset.loaded=1}
     if(!RM){const p=v.play();if(p)p.catch(()=>{})}}else{v.pause()}}),{threshold:.15,rootMargin:'200px'});
 document.querySelectorAll('video.lazyvid').forEach(v=>vo.observe(v));
+// Safari refuses to start muted video while it is still faded out (reveal) and never retries; keep nudging visible loops
+const vis=new IntersectionObserver(es=>es.forEach(e=>{e.target._vis=e.isIntersecting}),{threshold:.15});
+document.querySelectorAll('video.lazyvid').forEach(v=>{vis.observe(v);v.addEventListener('loadeddata',()=>{if(v._vis&&!RM){const p=v.play();if(p)p.catch(()=>{})}})});
+if(!RM)setInterval(()=>{if(document.hidden)return;document.querySelectorAll('video.lazyvid').forEach(v=>{if(v._vis&&v.paused&&v.readyState>=2){const p=v.play();if(p)p.catch(()=>{})}})},700);
 
 // hero film chapters
 const hv=document.getElementById('heroVid');
